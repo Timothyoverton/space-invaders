@@ -1,17 +1,16 @@
 <div class="game-wrapper">
-  <div class="hud">
+  <div class="hud" [style.width.px]="gameWidth">
     <div class="hud-item">Score: {{ score() }}</div>
+    <div class="hud-title">Space Invaders</div>
     <div class="hud-item">Level: {{ level() }}</div>
-    <div class="hud-item">Space Invaders</div>
   </div>
 
   <div class="game-container">
-    <!-- Game Board -->
     <div
       class="game-board"
       [style.width.px]="gameWidth"
       [style.height.px]="gameHeight"
-      [class.game-over]="gameOver()">
+      [class.is-game-over]="gameOver()">
 
       <!-- Player -->
       <div
@@ -30,6 +29,18 @@
         [style.top.px]="enemy.y"
         [style.width.px]="enemy.width"
         [style.height.px]="enemy.height">
+      </div>
+
+      <!-- Island Blocks -->
+      <div
+        *ngFor="let block of islandBlocks"
+        class="island-block"
+        [style.left.px]="block.x"
+        [style.top.px]="block.y"
+        [style.width.px]="block.width"
+        [style.height.px]="block.height"
+        [style.background]="blockColor(block.health)"
+        [style.box-shadow]="'0 0 5px ' + blockColor(block.health)">
       </div>
 
       <!-- Player Bullets -->
@@ -52,12 +63,13 @@
         [style.height.px]="bullet.height">
       </div>
 
-      <!-- Game Over Screen -->
+      <!-- Game Over Overlay -->
       <div class="game-over-screen" *ngIf="gameOver()">
         <div class="game-over-content">
           <h1>Game Over!</h1>
-          <p>Final Score: {{ score() }}</p>
-          <p>Level Reached: {{ level() }}</p>
+          <p class="final-score">Score: {{ score() }}</p>
+          <p>Level reached: {{ level() }}</p>
+          <p class="best-score" *ngIf="score() === getBestScore() && gameCount > 1">⭐ New Session Best!</p>
           <button (click)="restartGame()" class="restart-btn">Play Again</button>
         </div>
       </div>
@@ -65,8 +77,31 @@
   </div>
 
   <div class="controls">
-    <p>← → or A/D to move | SPACE to shoot</p>
+    ← → or A / D to move &nbsp;|&nbsp; SPACE to shoot
+  </div>
+
+  <!-- Session History -->
+  <div class="history" *ngIf="sessionHistory.length > 0" [style.width.px]="gameWidth">
+    <h2>Session History</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Game</th>
+          <th>Score</th>
+          <th>Level</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let record of sessionHistory"
+          [class.best-row]="record.score === getBestScore()">
+          <td>#{{ record.gameNumber }}</td>
+          <td>{{ record.score }}</td>
+          <td>{{ record.level }}</td>
+          <td>{{ record.time }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
-
-
