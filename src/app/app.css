@@ -53,8 +53,12 @@
   box-shadow: 0 0 30px rgba(0, 255, 0, 0.4);
 }
 
-.game-board.is-game-over {
-  filter: brightness(0.4);
+.game-board.is-game-over .player,
+.game-board.is-game-over .enemy,
+.game-board.is-game-over .bullet,
+.game-board.is-game-over .enemy-bullet,
+.game-board.is-game-over .island-block {
+  opacity: 0.2;
 }
 
 .player {

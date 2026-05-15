@@ -205,8 +205,8 @@ export class App implements OnInit, OnDestroy {
 
     if (this.enemies.length === 0) {
       this.level.update(l => l + 1);
-      this.enemySpeed = Math.min(1 + (this.level() - 1) * 0.5, 5);
-      this.spawnEnemies(Math.min(5 + this.level() - 1, 9));
+      this.enemySpeed = Math.min(1 + (this.level() - 1) * 0.2, 3);
+      this.spawnEnemies(Math.min(5 + Math.floor((this.level() - 1) / 2), 10));
       this.createIslands();
     }
   }
@@ -223,7 +223,7 @@ export class App implements OnInit, OnDestroy {
 
   enemyShoot() {
     this.spawnTimer++;
-    const interval = Math.max(20, 55 - this.level() * 3);
+    const interval = Math.max(28, 70 - this.level() * 2);
     if (this.spawnTimer > interval && this.enemies.length > 0) {
       const shooter = this.enemies[Math.floor(Math.random() * this.enemies.length)];
       this.enemyBullets.push({
