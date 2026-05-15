@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "angular-web-stub": {
+    "space-invaders": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -59,10 +59,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "angular-web-stub:build:production"
+              "buildTarget": "space-invaders:build:production"
             },
             "development": {
-              "buildTarget": "angular-web-stub:build:development"
+              "buildTarget": "space-invaders:build:development"
             }
           },
           "defaultConfiguration": "development"
