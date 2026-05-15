@@ -1,0 +1,144 @@
+.game-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid #00ff00;
+  color: #00ff00;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 0 10px #00ff00;
+}
+
+.hud-item {
+  flex: 1;
+  text-align: center;
+}
+
+.game-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.game-board {
+  position: relative;
+  background: #000;
+  border: 3px solid #00ff00;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+}
+
+.game-board.game-over {
+  filter: brightness(0.5);
+}
+
+.player {
+  position: absolute;
+  background: #00ff00;
+  border: 2px solid #00dd00;
+  box-shadow: 0 0 10px #00ff00;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+.enemy {
+  position: absolute;
+  background: #ff0000;
+  border: 2px solid #cc0000;
+  box-shadow: 0 0 10px #ff0000;
+}
+
+.bullet {
+  position: absolute;
+  background: #00ff00;
+  border: 1px solid #00dd00;
+  box-shadow: 0 0 5px #00ff00;
+}
+
+.enemy-bullet {
+  position: absolute;
+  background: #ff0000;
+  border: 1px solid #cc0000;
+  box-shadow: 0 0 5px #ff0000;
+}
+
+.game-over-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.game-over-content {
+  text-align: center;
+  background: rgba(255, 0, 0, 0.2);
+  padding: 40px;
+  border: 2px solid #ff0000;
+  border-radius: 10px;
+}
+
+.game-over-content h1 {
+  color: #ff0000;
+  font-size: 48px;
+  margin: 0 0 20px 0;
+  text-shadow: 0 0 20px #ff0000;
+}
+
+.game-over-content p {
+  color: #00ff00;
+  font-size: 24px;
+  margin: 10px 0;
+}
+
+.restart-btn {
+  margin-top: 20px;
+  padding: 12px 30px;
+  font-size: 18px;
+  background: #00ff00;
+  color: #000;
+  border: 2px solid #00dd00;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+  box-shadow: 0 0 10px #00ff00;
+  transition: all 0.2s;
+}
+
+.restart-btn:hover {
+  background: #00dd00;
+  box-shadow: 0 0 20px #00ff00;
+  transform: scale(1.05);
+}
+
+.controls {
+  color: #00ff00;
+  font-size: 16px;
+  text-align: center;
+  text-shadow: 0 0 10px #00ff00;
+  margin-top: 20px;
+}
+
+.controls p {
+  margin: 0;
+}

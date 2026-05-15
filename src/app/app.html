@@ -1,0 +1,72 @@
+<div class="game-wrapper">
+  <div class="hud">
+    <div class="hud-item">Score: {{ score() }}</div>
+    <div class="hud-item">Level: {{ level() }}</div>
+    <div class="hud-item">Space Invaders</div>
+  </div>
+
+  <div class="game-container">
+    <!-- Game Board -->
+    <div
+      class="game-board"
+      [style.width.px]="gameWidth"
+      [style.height.px]="gameHeight"
+      [class.game-over]="gameOver()">
+
+      <!-- Player -->
+      <div
+        class="player"
+        [style.left.px]="player.x"
+        [style.top.px]="player.y"
+        [style.width.px]="player.width"
+        [style.height.px]="player.height">
+      </div>
+
+      <!-- Enemies -->
+      <div
+        *ngFor="let enemy of enemies"
+        class="enemy"
+        [style.left.px]="enemy.x"
+        [style.top.px]="enemy.y"
+        [style.width.px]="enemy.width"
+        [style.height.px]="enemy.height">
+      </div>
+
+      <!-- Player Bullets -->
+      <div
+        *ngFor="let bullet of bullets"
+        class="bullet"
+        [style.left.px]="bullet.x"
+        [style.top.px]="bullet.y"
+        [style.width.px]="bullet.width"
+        [style.height.px]="bullet.height">
+      </div>
+
+      <!-- Enemy Bullets -->
+      <div
+        *ngFor="let bullet of enemyBullets"
+        class="enemy-bullet"
+        [style.left.px]="bullet.x"
+        [style.top.px]="bullet.y"
+        [style.width.px]="bullet.width"
+        [style.height.px]="bullet.height">
+      </div>
+
+      <!-- Game Over Screen -->
+      <div class="game-over-screen" *ngIf="gameOver()">
+        <div class="game-over-content">
+          <h1>Game Over!</h1>
+          <p>Final Score: {{ score() }}</p>
+          <p>Level Reached: {{ level() }}</p>
+          <button (click)="restartGame()" class="restart-btn">Play Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <p>← → or A/D to move | SPACE to shoot</p>
+  </div>
+</div>
+
+
