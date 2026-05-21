@@ -105,6 +105,7 @@ export class App implements OnInit, OnDestroy {
     this.gameStarted.set(true);
     this.level.set(1);
     this.enemySpeed = 1;
+    this.enemyDirection = 1;
     this.spawnTimer = 0;
     this.player.x = 450;
     this.spawnEnemies(5);
@@ -231,7 +232,7 @@ export class App implements OnInit, OnDestroy {
         y: shooter.y + shooter.height,
         width: 6,
         height: 18,
-        speed: 4 + this.level() * 0.3
+        speed: 3 + this.level() * 0.15
       });
       this.spawnTimer = 0;
     }
