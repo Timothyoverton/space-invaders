@@ -60,7 +60,9 @@
         [style.left.px]="bullet.x"
         [style.top.px]="bullet.y"
         [style.width.px]="bullet.width"
-        [style.height.px]="bullet.height">
+        [style.height.px]="bullet.height"
+        [style.background]="bullet.color"
+        [style.box-shadow]="'0 0 8px 2px ' + bullet.color">
       </div>
 
       <!-- Game Over Overlay -->

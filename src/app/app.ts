@@ -22,6 +22,7 @@ interface Bullet {
   width: number;
   height: number;
   speed: number;
+  color?: string;
 }
 
 interface IslandBlock {
@@ -112,6 +113,17 @@ export class App implements OnInit, OnDestroy {
     this.createIslands();
     this.startGameLoop();
   }
+
+  private readonly LASER_TYPES = [
+    { w: 5,  h: 20, sm: 1.0, color: '#ff2222' },  // zapper  — red,    standard
+    { w: 3,  h: 36, sm: 1.3, color: '#00ffff' },  // beam    — cyan,   thin & fast
+    { w: 12, h: 8,  sm: 0.7, color: '#ff8800' },  // blob    — orange, wide & slow
+    { w: 7,  h: 14, sm: 0.85,color: '#cc00ff' },  // plasma  — purple, chunky
+    { w: 2,  h: 44, sm: 1.5, color: '#00ff44' },  // spike   — green,  long & quick
+    { w: 10, h: 10, sm: 0.75,color: '#ff00cc' },  // burst   — pink,   fat & slow
+    { w: 4,  h: 28, sm: 1.1, color: '#ffff00' },  // bolt    — yellow, medium
+    { w: 6,  h: 16, sm: 0.95,color: '#ff6600' },  // flare   — deep orange
+  ];
 
   // Shape templates by tier. 1 = block, 0 = gap. All 5 cols wide.
   private readonly SHAPES: number[][][][] = [
@@ -268,12 +280,15 @@ export class App implements OnInit, OnDestroy {
     const interval = Math.max(28, 70 - this.level() * 2);
     if (this.spawnTimer > interval && this.enemies.length > 0) {
       const shooter = this.enemies[Math.floor(Math.random() * this.enemies.length)];
+      const laser = this.LASER_TYPES[Math.floor(Math.random() * this.LASER_TYPES.length)];
+      const baseSpeed = 3 + this.level() * 0.15;
       this.enemyBullets.push({
-        x: shooter.x + shooter.width / 2 - 3,
+        x: shooter.x + shooter.width / 2 - laser.w / 2,
         y: shooter.y + shooter.height,
-        width: 6,
-        height: 18,
-        speed: 3 + this.level() * 0.15
+        width: laser.w,
+        height: laser.h,
+        speed: baseSpeed * laser.sm,
+        color: laser.color
       });
       this.spawnTimer = 0;
     }

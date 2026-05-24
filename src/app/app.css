@@ -90,8 +90,6 @@
 
 .enemy-bullet {
   position: absolute;
-  background: #ff4400;
-  box-shadow: 0 0 6px #ff4400;
   border-radius: 3px;
 }
 
