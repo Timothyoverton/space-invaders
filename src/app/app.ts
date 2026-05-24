@@ -108,7 +108,7 @@ export class App implements OnInit, OnDestroy {
     this.enemyDirection = 1;
     this.spawnTimer = 0;
     this.player.x = 450;
-    this.spawnEnemies(5);
+    this.spawnEnemies(5, 3);
     this.createIslands();
     this.startGameLoop();
   }
@@ -148,15 +148,21 @@ export class App implements OnInit, OnDestroy {
     this.gameLoop = requestAnimationFrame(tick);
   }
 
-  spawnEnemies(count: number) {
+  spawnEnemies(cols: number, rows: number) {
     this.enemies = [];
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < count; col++) {
+    const enemyW = 48;
+    const enemyH = 36;
+    const gap = 20;
+    const totalWidth = cols * enemyW + (cols - 1) * gap;
+    const startX = Math.floor((this.gameWidth - totalWidth) / 2);
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
         this.enemies.push({
-          x: 60 + col * 110,
-          y: 40 + row * 72,
-          width: 48,
-          height: 36
+          x: startX + col * (enemyW + gap),
+          y: 40 + row * 70,
+          width: enemyW,
+          height: enemyH
         });
       }
     }
@@ -207,7 +213,10 @@ export class App implements OnInit, OnDestroy {
     if (this.enemies.length === 0) {
       this.level.update(l => l + 1);
       this.enemySpeed = Math.min(1 + (this.level() - 1) * 0.2, 3);
-      this.spawnEnemies(Math.min(5 + Math.floor((this.level() - 1) / 2), 10));
+      const lv = this.level();
+      const cols = Math.min(5 + Math.floor((lv - 1) / 2), 10);
+      const rows = lv >= 14 ? 5 : lv >= 9 ? 4 : 3;
+      this.spawnEnemies(cols, rows);
       this.createIslands();
     }
   }
