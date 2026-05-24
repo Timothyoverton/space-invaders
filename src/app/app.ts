@@ -25,6 +25,17 @@ interface Bullet {
   color?: string;
 }
 
+interface PowerUp {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  speed: number;
+  type: string;
+  color: string;
+  label: string;
+}
+
 interface IslandBlock {
   x: number;
   y: number;
@@ -86,10 +97,7 @@ export class App implements OnInit, OnDestroy {
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     this.keys[event.key.toLowerCase()] = true;
-    if (event.key === ' ') {
-      event.preventDefault();
-      if (this.gameStarted() && !this.gameOver()) this.shoot();
-    }
+    if (event.key === ' ') event.preventDefault();
   }
 
   @HostListener('window:keyup', ['$event'])
@@ -108,11 +116,32 @@ export class App implements OnInit, OnDestroy {
     this.enemySpeed = 1;
     this.enemyDirection = 1;
     this.spawnTimer = 0;
+    this.powerUps = [];
+    this.activePowerUp = null;
+    this.powerUpTimer = 0;
+    this.powerUpSpawnTimer = 0;
+    this.shootCooldown = 0;
     this.player.x = 450;
     this.spawnEnemies(5, 3);
     this.createIslands();
     this.startGameLoop();
   }
+
+  private readonly POWER_UP_DEFS: Record<string, { color: string; label: string; name: string }> = {
+    dual:   { color: '#ffee00', label: '⚡', name: 'DUAL CANNON' },
+    triple: { color: '#ff8800', label: '3×', name: 'TRIPLE SHOT' },
+    fast:   { color: '#00eeff', label: '»',  name: 'FAST LASER'  },
+    big:    { color: '#00ff88', label: '■',  name: 'BIG SHOT'    },
+    rapid:  { color: '#ff44ff', label: '★',  name: 'RAPID FIRE'  },
+  };
+
+  powerUps: PowerUp[] = [];
+  activePowerUp: string | null = null;
+  powerUpTimer = 0;
+  readonly powerUpDuration = 600; // 10 s at 60 fps
+  powerUpSpawnTimer = 0;
+  readonly powerUpSpawnInterval = 480; // ~8 s between drops
+  shootCooldown = 0;
 
   private readonly LASER_TYPES = [
     { w: 5,  h: 20, sm: 1.0, color: '#ff2222' },  // zapper  — red,    standard
@@ -217,7 +246,9 @@ export class App implements OnInit, OnDestroy {
     this.updateBullets();
     this.updateEnemies();
     this.updateEnemyBullets();
+    this.updatePowerUps();
     this.enemyShoot();
+    this.spawnPowerUp();
   }
 
   updatePlayer() {
@@ -226,6 +257,12 @@ export class App implements OnInit, OnDestroy {
     }
     if (this.keys['arrowright'] || this.keys['d']) {
       this.player.x = Math.min(this.gameWidth - this.player.width, this.player.x + this.player.speed);
+    }
+    if (this.shootCooldown > 0) this.shootCooldown--;
+    if (this.keys[' '] && this.shootCooldown === 0) this.shoot();
+    if (this.powerUpTimer > 0) {
+      this.powerUpTimer--;
+      if (this.powerUpTimer === 0) this.activePowerUp = null;
     }
   }
 
@@ -266,12 +303,43 @@ export class App implements OnInit, OnDestroy {
   }
 
   shoot() {
-    this.bullets.push({
-      x: this.player.x + this.player.width / 2 - 3,
-      y: this.player.y,
-      width: 6,
-      height: 18,
-      speed: 9
+    const pu = this.activePowerUp;
+    this.shootCooldown = pu === 'rapid' ? 5 : 15;
+
+    const cx    = this.player.x + this.player.width / 2;
+    const bw    = pu === 'big'  ? 14 : 6;
+    const bh    = pu === 'big'  ? 28 : 18;
+    const bs    = pu === 'fast' ? 16 : 9;
+    const color = pu ? this.POWER_UP_DEFS[pu].color : '#00ff00';
+
+    const make = (offset: number): Bullet => ({
+      x: cx + offset - bw / 2, y: this.player.y,
+      width: bw, height: bh, speed: bs, color
+    });
+
+    if (pu === 'dual')   { this.bullets.push(make(-20), make(20)); }
+    else if (pu === 'triple') { this.bullets.push(make(-22), make(0), make(22)); }
+    else                 { this.bullets.push(make(0)); }
+  }
+
+  updatePowerUps() {
+    this.powerUps = this.powerUps.filter(pu => { pu.y += pu.speed; return pu.y < this.gameHeight; });
+  }
+
+  spawnPowerUp() {
+    if (this.enemies.length === 0) return;
+    this.powerUpSpawnTimer++;
+    if (this.powerUpSpawnTimer < this.powerUpSpawnInterval) return;
+    this.powerUpSpawnTimer = 0;
+    const host = this.enemies[Math.floor(Math.random() * this.enemies.length)];
+    const keys = Object.keys(this.POWER_UP_DEFS);
+    const type = keys[Math.floor(Math.random() * keys.length)];
+    const def  = this.POWER_UP_DEFS[type];
+    this.powerUps.push({
+      x: host.x + host.width / 2 - 14,
+      y: host.y + host.height,
+      width: 28, height: 28, speed: 1.5,
+      type, color: def.color, label: def.label
     });
   }
 
@@ -338,6 +406,15 @@ export class App implements OnInit, OnDestroy {
         return;
       }
     }
+
+    // Player collects power-ups
+    for (let i = this.powerUps.length - 1; i >= 0; i--) {
+      if (this.isColliding(this.powerUps[i], this.player)) {
+        this.activePowerUp = this.powerUps[i].type;
+        this.powerUpTimer  = this.powerUpDuration;
+        this.powerUps.splice(i, 1);
+      }
+    }
   }
 
   isColliding(a: any, b: any): boolean {
@@ -366,6 +443,10 @@ export class App implements OnInit, OnDestroy {
     if (health === 2) return '#aaff00';
     return '#ff8800';
   }
+
+  powerUpName(): string    { return this.activePowerUp ? this.POWER_UP_DEFS[this.activePowerUp].name  : ''; }
+  powerUpColor(): string   { return this.activePowerUp ? this.POWER_UP_DEFS[this.activePowerUp].color : '#fff'; }
+  powerUpSeconds(): number { return Math.ceil(this.powerUpTimer / 60); }
 
   getBestScore(): number {
     return this.sessionHistory.length > 0
