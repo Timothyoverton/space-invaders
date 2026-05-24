@@ -113,17 +113,49 @@ export class App implements OnInit, OnDestroy {
     this.startGameLoop();
   }
 
+  // Shape templates by tier. 1 = block, 0 = gap. All 5 cols wide.
+  private readonly SHAPES: number[][][][] = [
+    // Tier 1 — levels 1-3: solid, easy to hide behind
+    [
+      [[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0]],           // classic arch
+      [[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1]],           // solid block
+      [[0,0,1,0,0],[0,1,1,1,0],[1,1,1,1,1]],           // pyramid
+      [[0,1,1,1,0],[1,1,1,1,1],[0,1,1,1,0]],           // diamond
+    ],
+    // Tier 2 — levels 4-7: gaps start appearing
+    [
+      [[1,0,0,0,1],[1,1,1,1,1],[1,1,0,1,1]],           // fort
+      [[1,1,0,1,1],[1,1,1,1,1],[1,1,0,1,1]],           // H-shape
+      [[1,0,1,0,1],[1,1,1,1,1],[1,1,1,1,1]],           // battlements
+      [[0,0,1,0,0],[0,1,1,1,0],[1,1,1,1,1],[0,1,0,1,0]], // tower
+    ],
+    // Tier 3 — levels 8+: sparse and tricky
+    [
+      [[1,0,1,0,1],[0,1,0,1,0],[1,0,1,0,1]],           // checkerboard
+      [[1,1,0,0,0],[1,1,1,0,0],[1,1,1,1,0],[1,1,1,1,1]], // steps
+      [[0,1,0,1,0],[1,1,1,1,1],[0,1,0,1,0]],           // lattice
+      [[1,0,1,0,1],[1,1,1,1,1],[0,1,1,1,0],[0,0,1,0,0]], // spire
+    ],
+  ];
+
   createIslands() {
     this.islandBlocks = [];
     const blockW = 16;
     const blockH = 12;
     const islandY = 560;
     const islandXs = [120, 330, 545, 755];
+    const lv = this.level();
+    const tier = lv >= 8 ? 2 : lv >= 4 ? 1 : 0;
+
+    // Build pool from all tiers up to current
+    const pool: number[][][] = [];
+    for (let t = 0; t <= tier; t++) pool.push(...this.SHAPES[t]);
 
     for (const ix of islandXs) {
-      for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 5; col++) {
-          if (row === 2 && (col === 0 || col === 4)) continue;
+      const shape = pool[Math.floor(Math.random() * pool.length)];
+      for (let row = 0; row < shape.length; row++) {
+        for (let col = 0; col < shape[row].length; col++) {
+          if (!shape[row][col]) continue;
           this.islandBlocks.push({
             x: ix + col * blockW,
             y: islandY + row * blockH,
