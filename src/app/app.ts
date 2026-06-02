@@ -81,6 +81,7 @@ export class App implements OnInit, OnDestroy {
   enemySpeed = 1;
   spawnTimer = 0;
   gameLoop: number | null = null;
+  private lastTime = 0;
   keys: { [key: string]: boolean } = {};
 
   sessionHistory: GameRecord[] = [];
@@ -211,9 +212,14 @@ export class App implements OnInit, OnDestroy {
 
   startGameLoop() {
     if (this.gameLoop) cancelAnimationFrame(this.gameLoop);
-    const tick = () => {
+    this.lastTime = 0;
+    const tick = (timestamp: number) => {
+      if (this.lastTime === 0) this.lastTime = timestamp;
+      const dt = Math.min(timestamp - this.lastTime, 50); // cap at 50 ms (tab-switch guard)
+      this.lastTime = timestamp;
+      const f = dt / (1000 / 60); // 1.0 at 60 fps, 0.5 at 120 fps, 2.0 at 30 fps
       if (!this.gameOver()) {
-        this.update();
+        this.update(f);
         this.checkCollisions();
       }
       this.gameLoop = requestAnimationFrame(tick);
@@ -241,43 +247,43 @@ export class App implements OnInit, OnDestroy {
     }
   }
 
-  update() {
-    this.updatePlayer();
-    this.updateBullets();
-    this.updateEnemies();
-    this.updateEnemyBullets();
-    this.updatePowerUps();
-    this.enemyShoot();
-    this.spawnPowerUp();
+  update(f: number) {
+    this.updatePlayer(f);
+    this.updateBullets(f);
+    this.updateEnemies(f);
+    this.updateEnemyBullets(f);
+    this.updatePowerUps(f);
+    this.enemyShoot(f);
+    this.spawnPowerUp(f);
   }
 
-  updatePlayer() {
+  updatePlayer(f: number) {
     if (this.keys['arrowleft'] || this.keys['a']) {
-      this.player.x = Math.max(0, this.player.x - this.player.speed);
+      this.player.x = Math.max(0, this.player.x - this.player.speed * f);
     }
     if (this.keys['arrowright'] || this.keys['d']) {
-      this.player.x = Math.min(this.gameWidth - this.player.width, this.player.x + this.player.speed);
+      this.player.x = Math.min(this.gameWidth - this.player.width, this.player.x + this.player.speed * f);
     }
-    if (this.shootCooldown > 0) this.shootCooldown--;
-    if (this.keys[' '] && this.shootCooldown === 0) this.shoot();
+    if (this.shootCooldown > 0) this.shootCooldown -= f;
+    if (this.keys[' '] && this.shootCooldown <= 0) this.shoot();
     if (this.powerUpTimer > 0) {
-      this.powerUpTimer--;
-      if (this.powerUpTimer === 0) this.activePowerUp = null;
+      this.powerUpTimer -= f;
+      if (this.powerUpTimer <= 0) { this.powerUpTimer = 0; this.activePowerUp = null; }
     }
   }
 
-  updateBullets() {
-    this.bullets = this.bullets.filter(b => { b.y -= b.speed; return b.y > 0; });
+  updateBullets(f: number) {
+    this.bullets = this.bullets.filter(b => { b.y -= b.speed * f; return b.y > 0; });
   }
 
-  updateEnemyBullets() {
-    this.enemyBullets = this.enemyBullets.filter(b => { b.y += b.speed; return b.y < this.gameHeight; });
+  updateEnemyBullets(f: number) {
+    this.enemyBullets = this.enemyBullets.filter(b => { b.y += b.speed * f; return b.y < this.gameHeight; });
   }
 
-  updateEnemies() {
+  updateEnemies(f: number) {
     let hitEdge = false;
     for (const enemy of this.enemies) {
-      enemy.x += this.enemySpeed * this.enemyDirection;
+      enemy.x += this.enemySpeed * this.enemyDirection * f;
       if (enemy.x <= 0 || enemy.x + enemy.width >= this.gameWidth) hitEdge = true;
     }
 
@@ -322,13 +328,13 @@ export class App implements OnInit, OnDestroy {
     else                 { this.bullets.push(make(0)); }
   }
 
-  updatePowerUps() {
-    this.powerUps = this.powerUps.filter(pu => { pu.y += pu.speed; return pu.y < this.gameHeight; });
+  updatePowerUps(f: number) {
+    this.powerUps = this.powerUps.filter(pu => { pu.y += pu.speed * f; return pu.y < this.gameHeight; });
   }
 
-  spawnPowerUp() {
+  spawnPowerUp(f: number) {
     if (this.enemies.length === 0) return;
-    this.powerUpSpawnTimer++;
+    this.powerUpSpawnTimer += f;
     if (this.powerUpSpawnTimer < this.powerUpSpawnInterval) return;
     this.powerUpSpawnTimer = 0;
     const host = this.enemies[Math.floor(Math.random() * this.enemies.length)];
@@ -343,8 +349,8 @@ export class App implements OnInit, OnDestroy {
     });
   }
 
-  enemyShoot() {
-    this.spawnTimer++;
+  enemyShoot(f: number) {
+    this.spawnTimer += f;
     const interval = Math.max(28, 70 - this.level() * 2);
     if (this.spawnTimer > interval && this.enemies.length > 0) {
       const shooter = this.enemies[Math.floor(Math.random() * this.enemies.length)];
